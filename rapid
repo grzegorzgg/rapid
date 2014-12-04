@@ -1,0 +1,81 @@
+#! /bin/bash
+
+NORMAL="\e[39m"
+GRREN="\e[32m"
+YELLOW="\e[33m"
+RED="\e[31m"
+
+########################
+##   CONFIGURATION
+
+
+
+#c prod www1 username 212.100.140.140 9110
+#c prod www2 username 212.100.140.141 9111
+#c prod mysql username 212.100.140.142 9112
+#c prod ftp username 212.100.140.142 9112
+#
+#
+#c home vbox0 grzegorz 192.168.10.100 22
+#c home vbox1 grzegorz 192.168.10.101 22
+#c home vbox2 grzegorz 192.168.10.102 22
+#c home router grzegorz 192.168.1.1 22
+#c home laptop grzegorz 192.168.1.18 22
+#
+#
+
+groupHost=(prod home)
+
+connectFunction()
+{
+	[[ ! -z "$1" ]] || exit
+
+	patter=${1/":"/" "}
+	lista=`egrep "^\#c $patter" $0`
+
+	[ -z "$lista" ] && echo -e "\n\t\t${RED}No such connection name${NORMAL}\n" && exit
+
+	poz=0
+    for i in $lista
+    do
+            tab[poz]=$i
+            let poz++
+    done
+
+    echo -e "\n\t${GRREN}Executing: ssh -p ${tab[5]} ${tab[3]}"@"${tab[4]} ${NORMAL}\n" 
+    ssh -p ${tab[5]} ${tab[3]}"@"${tab[4]}
+}
+
+manualFunction()
+{
+echo -e "${YELLOW}Usage:${NORMAL}"
+echo -e "  command [options]"
+echo -e ""
+
+echo -e "${YELLOW}Options:${NORMAL}"
+echo -e "${GRREN}  --ssh${NORMAL}"
+echo -e "${GRREN}  --scp${NORMAL}"
+echo -e "${GRREN}  --sshfs${NORMAL}"
+echo -e ""
+
+
+echo -e "${YELLOW}Available commands:${NORMAL}"
+echo -e "${GRREN}  help${NORMAL}"
+
+for i in ${groupHost[@]}; do
+    echo -e "${YELLOW}$i${NORMAL}"
+	egrep "^\#c $i" $0 | awk '{print "\033[32m  "$2":"$3"\033[39m\t\t user: "$4"\t\tserver: "$5"\tp: "$6}'
+done
+
+echo -e ""
+}
+
+# clear
+
+case $1 in
+    help) echo "You HELP selected bash";;
+    '') manualFunction;;
+    -z) exit;;
+	*) connectFunction $1 $2
+esac 
+
