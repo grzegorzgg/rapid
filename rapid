@@ -26,25 +26,7 @@ RED="\e[31m"
 
 groupHost=(prod home)
 
-connectFunction()
-{
-	[[ ! -z "$1" ]] || exit
 
-	patter=${1/":"/" "}
-	lista=`egrep "^\#c $patter" $0`
-
-	[ -z "$lista" ] && echo -e "\n\t\t${RED}No such connection name${NORMAL}\n" && exit
-
-	poz=0
-    for i in $lista
-    do
-            tab[poz]=$i
-            let poz++
-    done
-
-    echo -e "\n\t${GRREN}Executing: ssh -p ${tab[5]} ${tab[3]}"@"${tab[4]} ${NORMAL}\n" 
-    ssh -p ${tab[5]} ${tab[3]}"@"${tab[4]}
-}
 
 manualFunction()
 {
@@ -64,18 +46,65 @@ echo -e "${GRREN}  help${NORMAL}"
 
 for i in ${groupHost[@]}; do
     echo -e "${YELLOW}$i${NORMAL}"
-	egrep "^\#c $i" $0 | awk '{print "\033[32m  "$2":"$3"\033[39m\t\t user: "$4"\t\tserver: "$5"\tp: "$6}'
+    egrep "^\#c $i" $0 | awk '{print "\033[32m  "$2":"$3"\033[39m\t\t user: "$4"\t\tserver: "$5"\tp: "$6}'
 done
 
 echo -e ""
 }
 
+helpFunction()
+{
+echo -e ""
+echo -e "You HELP selected bash"
+echo -e ""
+}
+
+
+connectFunction()
+{
+    [[ ! -z "$1" ]] || exit
+
+    patter=${1/":"/" "}
+    lista=`egrep "^\#c $patter" $0`
+
+    [ -z "$lista" ] && echo -e "\n\t\t${RED}No such connection name${NORMAL}\n" && exit
+
+    poz=0
+    for i in $lista
+    do
+        tab[poz]=$i
+        let poz++
+    done
+
+
+
+    case $2 in
+        --scp)
+            echo -e "\n\t${GRREN}scp /local/directory/file.text -P ${tab[5]} ${tab[3]}"@"${tab[4]}:/remote/directory ${NORMAL}\n"
+            exit
+        ;;
+
+        --sshfs)
+            echo -e "sshfs"
+            echo -e "\n\t${GRREN}sshfs -p ${tab[5]} ${tab[3]}"@"${tab[4]}:/remote/directory /local/directory${NORMAL}\n" 
+            exit
+        ;;
+        
+        *)
+            echo -e "\n\t${GRREN}Executing: ssh -p ${tab[5]} ${tab[3]}"@"${tab[4]} ${NORMAL}\n" 
+            ssh -p ${tab[5]} ${tab[3]}"@"${tab[4]}
+            exit
+        ;;
+    esac
+
+}
+
 # clear
 
 case $1 in
-    help) echo "You HELP selected bash";;
+    help|--help|-h) helpFunction;;
     '') manualFunction;;
     -z) exit;;
-	*) connectFunction $1 $2
+    *) connectFunction $1 $2
 esac 
 
